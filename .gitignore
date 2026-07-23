@@ -1,32 +1,39 @@
 # Virtual environment
 .venv/
 venv/
-env/
 
 # Environment variables
 .env
-.env.*
-!.env.example
 
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
+*.pyo
+*.pyd
 
 # IDE
 .vscode/
 .idea/
 
-# Testing / coverage
+# OS
+.DS_Store
+Thumbs.db
+
+# CAELIS runtime data
+data/logs/*
+data/cache/*
+data/memory/*
+
+# Keep directories
+!data/logs/.gitkeep
+!data/cache/.gitkeep
+!data/memory/.gitkeep
+
+# Testing
 .pytest_cache/
 .coverage
-htmlcov/
 
 # Build
 build/
 dist/
 *.egg-info/
-
-# OS
-.DS_Store
-Thumbs.db
