@@ -1,33 +1,40 @@
-import re
+"""
+Language detector for CAELIS.
+Detects whether input text is in Tamil script, Thanglish, or English.
+"""
 
+import re
+from caelis.language.thanglish import score_thanglish, THANGLISH_VOCABULARY
 
 TAMIL_PATTERN = re.compile(r"[\u0B80-\u0BFF]")
 
-THANGLISH_WORDS = {
-    "enna",
-    "epdi",
-    "eppadi",
-    "iruka",
-    "irukku",
-    "pannu",
-    "panra",
-    "panren",
-    "venum",
-    "illa",
-    "seri",
-    "sari",
-    " sollu",
-    "open pannu",
-}
-
 
 def detect_language(text: str) -> str:
-    text = text.strip().lower()
+    """
+    Detect language of the input text.
 
-    if TAMIL_PATTERN.search(text):
+    Returns:
+        "tamil"     if script contains Tamil Unicode characters
+        "thanglish" if text contains Thanglish vocabulary or patterns
+        "english"   default fallback
+    """
+    if not text:
+        return "english"
+
+    cleaned = text.strip().lower()
+
+    # 1. Tamil script check
+    if TAMIL_PATTERN.search(cleaned):
         return "tamil"
 
-    if any(word.strip() in text for word in THANGLISH_WORDS):
+    # 2. Thanglish scoring check
+    score = score_thanglish(cleaned)
+    if score >= 0.25:
+        return "thanglish"
+
+    # 3. Check for any explicit Thanglish word boundary match
+    words = set(re.findall(r"\b\w+\b", cleaned))
+    if words.intersection(THANGLISH_VOCABULARY):
         return "thanglish"
 
     return "english"
