@@ -1,29 +1,50 @@
-import re
 from datetime import datetime
+import random
 
 from caelis.intelligence.local_ai import LocalAI
 from caelis.intelligence.personality import (
-    get_greeting,
     NAME,
     FULL_NAME,
     USER_NAME,
 )
+
+from caelis.nlp import IntentMatcher
+from caelis.nlp.training_data import INTENTS
 
 
 class Brain:
     """
     CAELIS intelligence layer.
 
-    Common commands are processed locally for maximum speed.
-    Open-ended conversation falls back to the local Ollama AI.
+    Processing priority:
+
+    1. CAELIS native NLP
+    2. Local deterministic commands
+    3. System commands
+    4. Ollama only for unknown/open-ended queries
     """
 
     def __init__(self):
         print("[BRAIN] Initializing intelligence...")
 
-        self.local_ai = LocalAI()
+        # Native CAELIS NLP
+        self.nlp = IntentMatcher(
+            fuzzy_threshold=0.78
+        )
 
-        print("[BRAIN] Local AI ready.")
+        print("[BRAIN] Native NLP ready.")
+
+        # Ollama remains fallback only.
+        try:
+            self.local_ai = LocalAI()
+            print("[BRAIN] Local AI fallback ready.")
+
+        except Exception as error:
+            print(
+                f"[BRAIN] Local AI unavailable: {error}"
+            )
+
+            self.local_ai = None
 
     # =========================================================
     # MAIN PROCESSOR
@@ -36,175 +57,91 @@ class Brain:
     ) -> str:
 
         if not text or not text.strip():
-            if language in ("thanglish", "tamil"):
-                return f"Enakku onnum kekala {USER_NAME}."
-
-            return f"I didn't hear anything, {USER_NAME}."
-
-        # Normalize incoming STT text.
-        raw_clean = self._normalize(text)
-        tokens = set(raw_clean.split())
-
-        print(f"[BRAIN] Normalized: {raw_clean}")
-        print(f"[BRAIN] Language: {language}")
-
-        # =====================================================
-        # 1. STATUS / HOW ARE YOU
-        # =====================================================
-
-        status_phrases = {
-            "how are you",
-            "how are you doing",
-            "hows it going",
-            "how you doing",
-
-            "epdi iruka",
-            "epdi irukeenga",
-            "epdi irukinga",
-
-            "eppadi iruka",
-            "eppadi irukeenga",
-            "eppadi irukinga",
-
-            "empadi iruka",
-            "empadi irukeenga",
-
-            "nalla irukiya",
-            "nalla irukingala",
-        }
-
-        is_status = (
-            raw_clean in status_phrases
-
-            or any(
-                phrase in raw_clean
-                for phrase in [
-                    "how are you",
-                    "hows it going",
-                    "epdi iruk",
-                    "eppadi iruk",
-                    "empadi iruk",
-                    "nalla iruk",
-                ]
-            )
-        )
-
-        if is_status:
-            print("[BRAIN] Local intent: STATUS")
 
             if language in ("thanglish", "tamil"):
                 return (
-                    f"Naan super-ah iruken {USER_NAME}! "
-                    "Neenga epdi irukeenga?"
+                    f"Enakku onnum kekala "
+                    f"{USER_NAME}."
                 )
 
             return (
-                f"I'm doing great, {USER_NAME}! "
-                "How are you doing?"
+                f"I didn't hear anything, "
+                f"{USER_NAME}."
             )
 
-        # =====================================================
-        # 2. GREETING
-        # =====================================================
+        print("[BRAIN] Processing...")
+        print(f"[BRAIN] Input: {text}")
+        print(f"[BRAIN] Language: {language}")
 
-        greeting_phrases = {
-            "hi",
-            "hii",
-            "hello",
-            "hey",
+        # -----------------------------------------------------
+        # Native NLP intent detection
+        # -----------------------------------------------------
 
-            "hi caelis",
-            "hello caelis",
-            "hey caelis",
+        result = self.nlp.match(text)
 
-            "hi bro",
-            "hey bro",
-            "hi machan",
-            "hey machan",
-
-            "vanakkam",
-            "vanakam",
-
-            "good morning",
-            "good afternoon",
-            "good evening",
-        }
-
-        is_greeting = (
-            raw_clean in greeting_phrases
-
-            or any(
-                phrase in raw_clean
-                for phrase in [
-                    "vanakkam",
-                    "vanakam",
-                    "hello caelis",
-                    "hey caelis",
-                    "hi caelis",
-                ]
-            )
+        print(
+            f"[NLP] Intent: {result.name}"
         )
 
-        if is_greeting:
-            print("[BRAIN] Local intent: GREETING")
-
-            return self._greeting(language)
-
-        # =====================================================
-        # 3. IDENTITY
-        # =====================================================
-
-        identity_phrases = {
-            "who are you",
-            "what are you",
-
-            "what is your name",
-            "whats your name",
-            "tell me your name",
-
-            "who is caelis",
-
-            "yaaru nee",
-            "nee yaaru",
-
-            "un per enna",
-            "un peru enna",
-            "un peyar enna",
-            "un peyer enna",
-
-            "caelis yaaru",
-        }
-
-        is_identity = (
-            raw_clean in identity_phrases
-
-            or any(
-                phrase in raw_clean
-                for phrase in [
-                    "who are you",
-                    "what is your name",
-                    "whats your name",
-                    "who is caelis",
-                    "yaaru nee",
-                    "nee yaaru",
-                    "un per",
-                    "un peru",
-                    "un peyar",
-                    "un peyer",
-                    "caelis yaaru",
-                ]
-            )
-
-            or (
-                "yaaru" in tokens
-                and "nee" in tokens
-            )
+        print(
+            f"[NLP] Confidence: "
+            f"{result.confidence:.2f}"
         )
 
-        if is_identity:
-            print("[BRAIN] Local intent: IDENTITY")
+        if result.matched_pattern:
+            print(
+                f"[NLP] Pattern: "
+                f"{result.matched_pattern}"
+            )
 
-            if language in ("thanglish", "tamil"):
+        if result.entities:
+            print(
+                f"[NLP] Entities: "
+                f"{result.entities}"
+            )
+
+        # =====================================================
+        # GREETING
+        # =====================================================
+
+        if result.name == "greeting":
+
+            print(
+                "[BRAIN] Local response: GREETING"
+            )
+
+            return self._intent_response(
+                "greeting",
+                language,
+            )
+
+        # =====================================================
+        # STATUS
+        # =====================================================
+
+        if result.name == "status":
+
+            print(
+                "[BRAIN] Local response: STATUS"
+            )
+
+            return self._intent_response(
+                "status",
+                language,
+            )
+
+        # =====================================================
+        # IDENTITY
+        # =====================================================
+
+        if result.name == "identity":
+
+            print(
+                "[BRAIN] Local response: IDENTITY"
+            )
+
+            if self._is_thanglish(language):
+
                 return (
                     f"Naan {NAME}, {FULL_NAME}. "
                     f"Naan unga personal AI assistant "
@@ -218,132 +155,36 @@ class Brain:
             )
 
         # =====================================================
-        # 4. CAPABILITIES / HELP
+        # CAPABILITIES
         # =====================================================
 
-        capability_phrases = {
-            "what can you do",
-            "what are your capabilities",
-            "tell me what you can do",
-            "how can you help me",
-            "help me",
+        if result.name == "capabilities":
 
-            "unnala enna panna mudiyum",
-            "unnala enna panra mudiyum",
-            "enna panna mudiyum",
-            "enna panra mudiyum",
-
-            "help pannu",
-            "enna help panna mudiyum",
-        }
-
-        is_capabilities = (
-            raw_clean in capability_phrases
-
-            or any(
-                phrase in raw_clean
-                for phrase in [
-                    "what can you do",
-                    "your capabilities",
-                    "panna mudiyum",
-                    "panra mudiyum",
-                    "help pannu",
-                ]
+            print(
+                "[BRAIN] Local response: CAPABILITIES"
             )
 
-            or (
-                "mudiyum" in tokens
-                and bool(
-                    tokens.intersection(
-                        {
-                            "panna",
-                            "panra",
-                            "unnala",
-                            "enna",
-                        }
-                    )
-                )
-            )
-        )
-
-        if is_capabilities:
-            print("[BRAIN] Local intent: CAPABILITIES")
-
-            if language in ("thanglish", "tamil"):
-                return (
-                    f"{USER_NAME}, enakku neraya "
-                    "visayam panna mudiyum. "
-                    "Questions-ku answer pannuven, "
-                    "information explain pannuven, "
-                    "English-um Thanglish-um pesuven, "
-                    "and supported system tasks-um "
-                    "handle pannuven."
-                )
-
-            return (
-                f"{USER_NAME}, I can answer questions, "
-                "explain concepts, have conversations, "
-                "understand English and Thanglish, "
-                "and handle supported system tasks."
+            return self._intent_response(
+                "capabilities",
+                language,
             )
 
         # =====================================================
-        # 5. TIME
+        # TIME
         # =====================================================
 
-        time_phrases = {
-            "what time is it",
-            "what is the time",
-            "whats the time",
+        if result.name == "time":
 
-            "tell me the time",
-            "tell the time",
-
-            "current time",
-            "time now",
-
-            "ippo time enna",
-            "ippo enna time",
-
-            "mani enna",
-            "enna mani",
-
-            "enna time",
-            "time enna",
-        }
-
-        is_time = (
-            raw_clean in time_phrases
-
-            or (
-                "time" in tokens
-                and bool(
-                    tokens.intersection(
-                        {
-                            "what",
-                            "current",
-                            "now",
-                            "enna",
-                            "ippo",
-                        }
-                    )
-                )
+            print(
+                "[BRAIN] Local response: TIME"
             )
-
-            or (
-                "mani" in tokens
-                and "enna" in tokens
-            )
-        )
-
-        if is_time:
-            print("[BRAIN] Local intent: TIME")
 
             current_time = datetime.now().strftime(
                 "%I:%M %p"
             )
 
-            if language in ("thanglish", "tamil"):
+            if self._is_thanglish(language):
+
                 return (
                     f"{USER_NAME}, ippo time "
                     f"{current_time}."
@@ -355,54 +196,21 @@ class Brain:
             )
 
         # =====================================================
-        # 6. DATE
+        # DATE
         # =====================================================
 
-        date_phrases = {
-            "what is the date",
-            "what date is it",
-            "whats the date",
+        if result.name == "date":
 
-            "tell me the date",
-
-            "todays date",
-            "today date",
-            "current date",
-
-            "inniku date enna",
-            "inniku enna date",
-
-            "date enna",
-            "enna date",
-        }
-
-        is_date = (
-            raw_clean in date_phrases
-
-            or (
-                "date" in tokens
-                and bool(
-                    tokens.intersection(
-                        {
-                            "what",
-                            "today",
-                            "current",
-                            "enna",
-                            "inniku",
-                        }
-                    )
-                )
+            print(
+                "[BRAIN] Local response: DATE"
             )
-        )
-
-        if is_date:
-            print("[BRAIN] Local intent: DATE")
 
             current_date = datetime.now().strftime(
                 "%A, %d %B %Y"
             )
 
-            if language in ("thanglish", "tamil"):
+            if self._is_thanglish(language):
+
                 return (
                     f"{USER_NAME}, inniku date "
                     f"{current_date}."
@@ -413,87 +221,215 @@ class Brain:
             )
 
         # =====================================================
-        # 7. GENERAL CONVERSATION -> OLLAMA
+        # THANKS
         # =====================================================
 
-        print(
-            "[BRAIN] No local intent matched."
-        )
+        if result.name == "thanks":
 
-        print(
-            "[BRAIN] Sending conversation to local AI "
-            f"(language={language})..."
-        )
-
-        try:
-            response = self.local_ai.generate(
-                message=text,
-                language=language,
-            )
-
-            if response:
-                return response.strip()
-
-        except Exception as error:
             print(
-                f"[BRAIN ERROR] {error}"
+                "[BRAIN] Local response: THANKS"
+            )
+
+            return self._intent_response(
+                "thanks",
+                language,
             )
 
         # =====================================================
-        # 8. AI FAILURE FALLBACK
+        # OPEN APPLICATION
         # =====================================================
 
-        if language in ("thanglish", "tamil"):
+        if result.name == "open_app":
+
+            app = result.entities.get("app")
+
+            print(
+                f"[BRAIN] System intent: "
+                f"OPEN_APP -> {app}"
+            )
+
+            if not app:
+
+                if self._is_thanglish(language):
+                    return (
+                        f"{USER_NAME}, endha app "
+                        "open pannanum?"
+                    )
+
+                return (
+                    f"{USER_NAME}, which application "
+                    "should I open?"
+                )
+
+            # Actual application execution will be
+            # connected in the next development step.
+
+            if self._is_thanglish(language):
+
+                return (
+                    f"Seri {USER_NAME}. "
+                    f"{app} open panna ready."
+                )
+
             return (
-                f"{USER_NAME}, ennoda local AI "
-                "ippo respond pannala. "
-                "Konjam neram kalichu try pannunga."
+                f"Okay {USER_NAME}. "
+                f"{app} is ready to be opened."
+            )
+
+        # =====================================================
+        # CLOSE APPLICATION
+        # =====================================================
+
+        if result.name == "close_app":
+
+            app = result.entities.get("app")
+
+            print(
+                f"[BRAIN] System intent: "
+                f"CLOSE_APP -> {app}"
+            )
+
+            if not app:
+
+                if self._is_thanglish(language):
+                    return (
+                        f"{USER_NAME}, endha app "
+                        "close pannanum?"
+                    )
+
+                return (
+                    f"{USER_NAME}, which application "
+                    "should I close?"
+                )
+
+            if self._is_thanglish(language):
+
+                return (
+                    f"Seri {USER_NAME}. "
+                    f"{app} close panna ready."
+                )
+
+            return (
+                f"Okay {USER_NAME}. "
+                f"{app} is ready to be closed."
+            )
+
+        # =====================================================
+        # UNKNOWN
+        # =====================================================
+
+        print(
+            "[BRAIN] Native NLP did not understand "
+            "the request."
+        )
+
+        # =====================================================
+        # OPTIONAL OLLAMA FALLBACK
+        # =====================================================
+
+        if self.local_ai is not None:
+
+            print(
+                "[BRAIN] Using Ollama fallback..."
+            )
+
+            try:
+
+                response = self.local_ai.generate(
+                    message=text,
+                    language=language,
+                )
+
+                if response:
+                    return response.strip()
+
+            except Exception as error:
+
+                print(
+                    f"[BRAIN ERROR] "
+                    f"Ollama fallback failed: "
+                    f"{error}"
+                )
+
+        # =====================================================
+        # FINAL LOCAL FALLBACK
+        # =====================================================
+
+        if self._is_thanglish(language):
+
+            return (
+                f"{USER_NAME}, indha command enakku "
+                "innum learn aagala. "
+                "Training data-la add pannalaam."
             )
 
         return (
-            f"My local AI isn't responding right now, "
-            f"{USER_NAME}. Please try again."
+            f"{USER_NAME}, I haven't learned that "
+            "command yet. We can add it to my "
+            "training data."
         )
 
     # =========================================================
-    # NORMALIZER
+    # TRAINING DATA RESPONSE
     # =========================================================
 
     @staticmethod
-    def _normalize(text: str) -> str:
-        """
-        Normalize STT/user text before intent detection.
+    def _intent_response(
+        intent_name: str,
+        language: str,
+    ) -> str:
 
-        Example:
-            "What is the time?"
-                    ->
-            "what is the time"
-        """
-
-        text = text.lower().strip()
-
-        # Replace punctuation with spaces instead of simply
-        # deleting it, so words don't accidentally join.
-        text = re.sub(
-            r"[^\w\s]",
-            " ",
-            text,
-            flags=re.UNICODE,
+        intent_data = INTENTS.get(
+            intent_name,
+            {}
         )
 
-        # Collapse repeated spaces.
-        text = re.sub(
-            r"\s+",
-            " ",
-            text,
+        responses = intent_data.get(
+            "responses",
+            {}
         )
 
-        return text.strip()
+        # Tamil speech currently uses Romanized
+        # Thanglish output because the installed
+        # SAPI voice is English.
+        response_language = (
+            "thanglish"
+            if language in ("thanglish", "tamil")
+            else "english"
+        )
+
+        available = responses.get(
+            response_language,
+            []
+        )
+
+        if available:
+            return random.choice(available)
+
+        # English backup.
+        available = responses.get(
+            "english",
+            []
+        )
+
+        if available:
+            return random.choice(available)
+
+        return (
+            f"{USER_NAME}, I understood the "
+            f"{intent_name} command."
+        )
 
     # =========================================================
-    # GREETING
+    # LANGUAGE HELPER
     # =========================================================
 
     @staticmethod
-    def _greeting(language: str) -> str:
-        return get_greeting(language)
+    def _is_thanglish(
+        language: str,
+    ) -> bool:
+
+        return language in (
+            "thanglish",
+            "tamil",
+        )
