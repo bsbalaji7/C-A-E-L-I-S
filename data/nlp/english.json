@@ -1,0 +1,41 @@
+[
+    {"intent":"greeting","text":"hello"},
+    {"intent":"greeting","text":"hi"},
+    {"intent":"greeting","text":"hey"},
+    {"intent":"greeting","text":"good morning"},
+    {"intent":"greeting","text":"good evening"},
+
+    {"intent":"status","text":"how are you"},
+    {"intent":"status","text":"how are you doing"},
+    {"intent":"status","text":"how have you been"},
+
+    {"intent":"identity","text":"who are you"},
+    {"intent":"identity","text":"what is your name"},
+    {"intent":"identity","text":"tell me your name"},
+
+    {"intent":"capabilities","text":"what can you do"},
+    {"intent":"capabilities","text":"help me"},
+    {"intent":"capabilities","text":"what are your capabilities"},
+
+    {"intent":"time","text":"what is the time"},
+    {"intent":"time","text":"what time is it"},
+    {"intent":"time","text":"tell me the time"},
+
+    {"intent":"date","text":"what is today's date"},
+    {"intent":"date","text":"what is the date"},
+    {"intent":"date","text":"today date"},
+
+    {"intent":"thanks","text":"thank you"},
+    {"intent":"thanks","text":"thanks"},
+    {"intent":"thanks","text":"thanks a lot"},
+
+    {"intent":"open_app","text":"open chrome"},
+    {"intent":"open_app","text":"open calculator"},
+    {"intent":"open_app","text":"open notepad"},
+    {"intent":"open_app","text":"open vscode"},
+
+    {"intent":"close_app","text":"close chrome"},
+    {"intent":"close_app","text":"close calculator"},
+    {"intent":"close_app","text":"close notepad"},
+    {"intent":"close_app","text":"close vscode"}
+]
