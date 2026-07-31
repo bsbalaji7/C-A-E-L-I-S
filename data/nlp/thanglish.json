@@ -1,0 +1,40 @@
+[
+    {"intent":"greeting","text":"vanakkam"},
+    {"intent":"greeting","text":"vanakam"},
+    {"intent":"greeting","text":"hi machan"},
+    {"intent":"greeting","text":"hi bro"},
+
+    {"intent":"status","text":"epdi iruka"},
+    {"intent":"status","text":"eppadi iruka"},
+    {"intent":"status","text":"epdi irukeenga"},
+    {"intent":"status","text":"nalla irukiya"},
+
+    {"intent":"identity","text":"nee yaaru"},
+    {"intent":"identity","text":"yaaru nee"},
+    {"intent":"identity","text":"un peru enna"},
+    {"intent":"identity","text":"caelis yaaru"},
+
+    {"intent":"capabilities","text":"unnala enna panna mudiyum"},
+    {"intent":"capabilities","text":"enna panna mudiyum"},
+    {"intent":"capabilities","text":"help pannu"},
+
+    {"intent":"time","text":"ippo time enna"},
+    {"intent":"time","text":"enna time"},
+    {"intent":"time","text":"mani enna"},
+
+    {"intent":"date","text":"inniku date enna"},
+    {"intent":"date","text":"date enna"},
+
+    {"intent":"thanks","text":"nandri"},
+    {"intent":"thanks","text":"thanks da"},
+
+    {"intent":"open_app","text":"chrome open pannu"},
+    {"intent":"open_app","text":"calculator open pannu"},
+    {"intent":"open_app","text":"notepad open pannu"},
+    {"intent":"open_app","text":"vscode open pannu"},
+
+    {"intent":"close_app","text":"chrome close pannu"},
+    {"intent":"close_app","text":"calculator close pannu"},
+    {"intent":"close_app","text":"notepad close pannu"},
+    {"intent":"close_app","text":"vscode close pannu"}
+]
