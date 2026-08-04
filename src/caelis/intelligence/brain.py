@@ -10,7 +10,7 @@ from caelis.intelligence.personality import (
 from caelis.nlp.classifier import IntentClassifier
 from caelis.nlp.entities import extract_entities
 from caelis.nlp.training_data import INTENTS
-
+from caelis.automation.executor import Executor
 
 class Brain:
     """
@@ -39,6 +39,8 @@ class Brain:
         print("[BRAIN] Initializing...")
 
         self.classifier = IntentClassifier()
+
+        self.executor = Executor()
 
         print("[BRAIN] Local ML ready.")
 
@@ -192,17 +194,25 @@ class Brain:
         # =================================================
         # OPEN APP
         # =================================================
-
         if intent == "open_app":
 
             app = entities.get("application")
 
             if app:
 
-                if self._is_thanglish(language):
-                    return f"Sari {USER_NAME}, {app} open panren."
+                success = self.executor.open_application(app)
 
-                return f"Opening {app}."
+                if success:
+
+                    if self._is_thanglish(language):
+                        return f"Sari {USER_NAME}, {app} open panren."
+
+                    return f"Opening {app}."
+
+                if self._is_thanglish(language):
+                    return f"{app} open panna mudiyala."
+
+                return f"I couldn't open {app}."
 
             if self._is_thanglish(language):
                 return "Yentha application open pannanum?"
@@ -219,10 +229,19 @@ class Brain:
 
             if app:
 
-                if self._is_thanglish(language):
-                    return f"Sari {USER_NAME}, {app} close panren."
+                success = self.executor.close_application(app)
 
-                return f"Closing {app}."
+                if success:
+
+                    if self._is_thanglish(language):
+                        return f"Sari {USER_NAME}, {app} close panren."
+
+                    return f"Closing {app}."
+
+                if self._is_thanglish(language):
+                    return f"{app} close panna mudiyala."
+
+                return f"I couldn't close {app}."
 
             if self._is_thanglish(language):
                 return "Yentha application close pannanum?"
