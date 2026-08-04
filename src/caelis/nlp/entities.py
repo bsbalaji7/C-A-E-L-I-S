@@ -1,37 +1,70 @@
-APP_ALIASES = {
+import re
+
+
+APPLICATIONS = {
     "chrome": "chrome",
     "google chrome": "chrome",
-
+    "edge": "msedge",
+    "microsoft edge": "msedge",
+    "firefox": "firefox",
     "notepad": "notepad",
-    "note pad": "notepad",
-
-    "calculator": "calculator",
-    "calc": "calculator",
-
-    "vscode": "vscode",
-    "vs code": "vscode",
-    "visual studio code": "vscode",
-
-    "explorer": "explorer",
-    "file explorer": "explorer",
-
+    "paint": "mspaint",
+    "calculator": "calc",
+    "calc": "calc",
     "cmd": "cmd",
     "command prompt": "cmd",
-
     "powershell": "powershell",
+    "explorer": "explorer",
+    "file explorer": "explorer",
+    "vscode": "code",
+    "vs code": "code",
+    "visual studio code": "code",
+    "spotify": "spotify",
+    "discord": "discord",
+    "steam": "steam",
 }
 
+def extract_app(text: str):
+    """
+    Backward compatibility for old matcher.py
+    """
 
-def extract_app(text: str) -> str | None:
-    text = text.lower().strip()
+    entities = extract_entities(text)
 
-    # Longer aliases first.
-    for alias in sorted(
-        APP_ALIASES,
-        key=len,
-        reverse=True,
-    ):
-        if alias in text:
-            return APP_ALIASES[alias]
+    return entities.get("application")
 
-    return None
+def extract_entities(text: str) -> dict:
+    """
+    Extract entities from a user command.
+
+    Example:
+        "open chrome"
+            ->
+        {"application": "chrome"}
+
+        "close vscode"
+            ->
+        {"application": "code"}
+    """
+
+    entities = {}
+
+    if not text:
+        return entities
+
+    sentence = text.lower()
+
+    
+
+    # -------------------------------
+    # Application Detection
+    # -------------------------------
+
+    for name, executable in APPLICATIONS.items():
+
+        if re.search(r"\b" + re.escape(name) + r"\b", sentence):
+
+            entities["application"] = executable
+            break
+
+    return entities
