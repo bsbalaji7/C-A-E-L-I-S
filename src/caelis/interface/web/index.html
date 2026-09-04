@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAELIS // Anti-Gravity Technology Interface</title>
+  <meta name="description" content="Futuristic AI-powered Anti-Gravity Field Command & Control HUD Interface" />
+
+  <!-- Sci-Fi Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <!-- Include Three.js for 3D Anti-Gravity Field Visualizer -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Three.js OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- HUD Design System Stylesheet -->
+  <link rel="stylesheet" href="css/hud.css" />
+</head>
+<body class="sci-fi-body">
+
+  <!-- Hexagonal Grid Overlay Backdrop -->
+  <div class="hud-hex-bg"></div>
+  <div class="hud-scanline"></div>
+
+  <!-- MAIN HUD WRAPPER -->
+  <div class="hud-container">
+
+    <!-- TOP HEADER / TELEMETRY BAR -->
+    <header class="hud-header">
+      <div class="brand-zone">
+        <div class="logo-orb">
+          <div class="logo-pulse"></div>
+          <span class="logo-icon">◈</span>
+        </div>
+        <div class="title-block">
+          <h1 class="hud-title">C.A.E.L.I.S.</h1>
+          <span class="hud-subtitle">ANTI-GRAVITY QUANTUM FLUX INTERFACE v3.6</span>
+        </div>
+      </div>
+
+      <!-- Quick Status Badges -->
+      <div class="system-status-bar">
+        <div class="status-badge" id="badge-system">
+          <span class="indicator green"></span>
+          <span class="lbl">SYSTEM:</span>
+          <span class="val" id="val-system">ONLINE</span>
+        </div>
+        <div class="status-badge" id="badge-field">
+          <span class="indicator cyan"></span>
+          <span class="lbl">FIELD:</span>
+          <span class="val" id="val-field-state">ACTIVE</span>
+        </div>
+        <div class="status-badge" id="badge-mode">
+          <span class="indicator amber"></span>
+          <span class="lbl">MODE:</span>
+          <span class="val" id="val-mode">TELEMETRY LIVE</span>
+        </div>
+        <div class="status-badge" id="badge-wake">
+          <span class="indicator pulse-cyan"></span>
+          <span class="lbl">WAKE WORD:</span>
+          <span class="val">"CAELIS"</span>
+        </div>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="header-actions">
+        <button id="btn-sound-toggle" class="hud-btn mini" title="Toggle Procedural Audio SFX">
+          <span class="icon">🔊</span> AUDIO: ON
+        </button>
+        <button id="btn-sim-mode" class="hud-btn mini amber-glow" title="Toggle Virtual Physics Simulation Mode">
+          <span class="icon">🎮</span> SIMULATION: OFF
+        </button>
+        <button id="btn-emergency-stop" class="hud-btn danger-glow" title="Emergency Field Brake">
+          <span class="icon">⚠️</span> E-STOP
+        </button>
+      </div>
+    </header>
+
+    <!-- GRID LAYOUT MAIN CONTENT -->
+    <main class="hud-grid">
+
+      <!-- LEFT COLUMN: FIELD TELEMETRY & FLIGHT CONTROLS -->
+      <section class="hud-panel left-panel">
+        
+        <!-- PANEL 1: REAL-TIME FIELD METRICS -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h2><span class="hdr-icon">⚡</span> FIELD TELEMETRY METRICS</h2>
+            <span class="card-tag">FLUX-MONITOR</span>
+          </div>
+          <div class="card-body grid-metrics">
+            
+            <!-- Intensity Gauge -->
+            <div class="metric-box intensity-box">
+              <span class="metric-label">FIELD INTENSITY</span>
+              <div class="gauge-bar-wrapper">
+                <div class="gauge-fill" id="gauge-intensity" style="width: 65%;"></div>
+              </div>
+              <div class="metric-readout">
+                <span class="metric-number" id="num-intensity">650</span>
+                <span class="metric-unit">% FLUX</span>
+              </div>
+            </div>
+
+            <!-- Stability Index -->
+            <div class="metric-box stability-box">
+              <span class="metric-label">STABILITY INDEX</span>
+              <div class="gauge-bar-wrapper">
+                <div class="gauge-fill green-fill" id="gauge-stability" style="width: 94%;"></div>
+              </div>
+              <div class="metric-readout">
+                <span class="metric-number green-text" id="num-stability">94.2</span>
+                <span class="metric-unit">%</span>
+              </div>
+            </div>
+
+            <!-- Altitude -->
+            <div class="metric-box">
+              <span class="metric-label">ALTITUDE ($h$)</span>
+              <div class="metric-readout">
+                <span class="metric-number cyan-text" id="num-altitude">120.5</span>
+                <span class="metric-unit">METERS</span>
+              </div>
+              <span class="sub-readout">Climb Rate: <span id="num-climb-rate">+1.2</span> m/s</span>
+            </div>
+
+            <!-- Field Energy -->
+            <div class="metric-box">
+              <span class="metric-label">FIELD POWER DENSITY</span>
+              <div class="metric-readout">
+                <span class="metric-number amber-text" id="num-energy">4.85</span>
+                <span class="metric-unit">GW</span>
+              </div>
+              <span class="sub-readout">Grav Distortion: <span id="num-g-dist">0.05 g</span></span>
+            </div>
+
+          </div>
+
+          <!-- Orientation Vectors (Pitch, Roll, Yaw) -->
+          <div class="vector-readout-row">
+            <div class="vec-item">PITCH: <span id="num-pitch">0.0°</span></div>
+            <div class="vec-item">ROLL: <span id="num-roll">0.0°</span></div>
+            <div class="vec-item">YAW: <span id="num-yaw">142.5°</span></div>
+          </div>
+        </div>
+
+        <!-- PANEL 2: FIELD MANIPULATION CONTROLS -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h2><span class="hdr-icon">🎛️</span> FIELD POWER CONTROLS</h2>
+            <span class="card-tag">FLUX-MANIPULATOR</span>
+          </div>
+          <div class="card-body">
+            
+            <!-- Intensity Slider -->
+            <div class="slider-control-group">
+              <div class="slider-hdr">
+                <label for="slider-intensity">FIELD INTENSITY ADJUSTMENT</label>
+                <span class="slider-val-disp" id="slider-intensity-disp">650 %</span>
+              </div>
+              <input type="range" id="slider-intensity" min="0" max="1000" step="10" value="650" class="hud-slider" />
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="btn-grid-row">
+              <button class="hud-btn" id="btn-inc-5">+5% POWER</button>
+              <button class="hud-btn" id="btn-inc-20">+20% BOOST</button>
+              <button class="hud-btn" id="btn-dec-5">-5% POWER</button>
+              <button class="hud-btn" id="btn-dec-20">-20% DAMPEN</button>
+              <button class="hud-btn success-glow" id="btn-stabilize">AUTO-STABILIZE</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PANEL 3: FLIGHT NAVIGATION CONTROLS -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h2><span class="hdr-icon">🛸</span> FLIGHT NAVIGATION SUITE</h2>
+            <span class="card-tag">VECTOR-DRIVE</span>
+          </div>
+          <div class="card-body">
+            <div class="nav-btn-grid">
+              <button class="hud-btn nav-btn" id="btn-nav-ascend">▲ ASCEND</button>
+              <button class="hud-btn nav-btn" id="btn-nav-descend">▼ DESCEND</button>
+              <button class="hud-btn nav-btn cyan-glow" id="btn-nav-hover">⟁ HOVER MODE</button>
+              <button class="hud-btn nav-btn" id="btn-drift-n">🠉 DRIFT N</button>
+              <button class="hud-btn nav-btn" id="btn-drift-s">🠋 DRIFT S</button>
+              <button class="hud-btn nav-btn" id="btn-drift-e">🠊 DRIFT E</button>
+              <button class="hud-btn nav-btn" id="btn-drift-w">🠈 DRIFT W</button>
+              <button class="hud-btn nav-btn" id="btn-rot-cw">↻ ROTATE CW</button>
+              <button class="hud-btn nav-btn" id="btn-rot-ccw">↺ ROTATE CCW</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- CENTER COLUMN: 3D ANTI-GRAVITY VISUALIZATION -->
+      <section class="hud-panel center-panel">
+        
+        <div class="panel-card viewport-card">
+          <div class="card-header">
+            <h2><span class="hdr-icon">🌐</span> CENTRAL 3D ANTI-GRAVITY FIELD VISUALIZATION</h2>
+            <div class="viewport-toggles">
+              <button class="toggle-chip active" id="chip-particles">PARTICLES</button>
+              <button class="toggle-chip active" id="chip-vectors">VECTORS</button>
+              <button class="toggle-chip active" id="chip-bubble">FORCE BUBBLE</button>
+              <button class="toggle-chip" id="btn-recenter">RESET CAM</button>
+            </div>
+          </div>
+
+          <!-- 3D CANVAS CONTAINER -->
+          <div class="canvas-3d-wrapper">
+            <div id="canvas-3d-container"></div>
+
+            <!-- Reticle HUD Overlay on top of 3D Canvas -->
+            <div class="hud-reticle-overlay">
+              <div class="hud-crosshair"></div>
+              <div class="hud-ring-outer"></div>
+              <div class="hud-ring-inner"></div>
+
+              <!-- Floating Canvas Overlay Data -->
+              <div class="overlay-tag top-left">FLUX CORE: STABLE</div>
+              <div class="overlay-tag top-right">FIELD HARMONIC: 142.8 GHz</div>
+              <div class="overlay-tag bottom-left" id="overlay-physics-mode">PHYSICS: NORMAL TELEMETRY</div>
+              <div class="overlay-tag bottom-right" id="overlay-coordinates">X: 0.00 | Y: 120.50 | Z: 0.00</div>
+            </div>
+          </div>
+          
+          <!-- Bottom Telemetry Ticker -->
+          <div class="viewport-footer-ticker">
+            <span class="ticker-lbl">GRAVITON DENSITY MATRIX:</span>
+            <div class="ticker-bar">
+              <div class="ticker-bar-fill" id="grav-density-fill" style="width: 78%;"></div>
+            </div>
+            <span class="ticker-val" id="grav-density-val">7.84x10¹² particles/m³</span>
+          </div>
+        </div>
+
+        <!-- SIMULATION CONTROL DECK (VISIBLE & DYNAMIC) -->
+        <div class="panel-card" id="sim-control-deck">
+          <div class="card-header">
+            <h2><span class="hdr-icon">🔬</span> VIRTUAL SIMULATION PARAMETER DECK</h2>
+            <span class="card-tag amber-text">VIRTUAL PHYSICS ENGINE</span>
+          </div>
+          <div class="card-body sim-controls-grid">
+            <div class="sim-param">
+              <label for="sim-payload">Payload Mass (kg)</label>
+              <input type="number" id="sim-payload" value="1250" class="hud-input" />
+            </div>
+            <div class="sim-param">
+              <label for="sim-gravity">Gravity Multiplier ($g$)</label>
+              <input type="number" id="sim-gravity" step="0.1" value="1.0" class="hud-input" />
+            </div>
+            <div class="sim-param">
+              <label for="sim-wind-turb">Wind Turbulence (kt)</label>
+              <input type="number" id="sim-wind-turb" value="15" class="hud-input" />
+            </div>
+            <div class="sim-actions">
+              <button class="hud-btn amber-glow" id="btn-inject-turb">INJECT TURBULENCE</button>
+              <button class="hud-btn danger-glow" id="btn-overload-test">OVERLOAD STRESS TEST</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: ENERGY, ENVIRONMENT, RADAR, VOICE AI & LOGS -->
+      <section class="hud-panel right-panel">
+        
+        <!-- PANEL 4: VOICE COMMAND & AI INTERACTION HUB -->
+        <div class="panel-card voice-card">
+          <div class="card-header">
+            <h2><span class="hdr-icon">🎙️</span> VOICE & AI COMMAND HUB</h2>
+            <span class="card-tag">ENGLISH + THANGLISH</span>
+          </div>
+          <div class="card-body">
+            
+            <!-- Voice Recognition State Box -->
+            <div class="voice-hud-box">
+              <div class="mic-status-row">
+                <button id="btn-mic-toggle" class="mic-btn pulse-red">
+                  <span class="mic-icon">🎙️</span>
+                </button>
+                <div class="voice-status-info">
+                  <span class="voice-state-title" id="voice-state-txt">WAKE WORD LISTENING: "CAELIS"</span>
+                  <div class="voice-wave-anim" id="voice-wave">
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recognized Transcript -->
+              <div class="transcript-box">
+                <span class="box-lbl">RECOGNIZED SPEECH:</span>
+                <p id="speech-transcript-text" class="transcript-content">"CAELIS elevate to 50 meters"</p>
+              </div>
+
+              <!-- Intent & Confidence Output -->
+              <div class="intent-output-row">
+                <div class="intent-tag-box">
+                  <span class="lbl">DETECTED INTENT:</span>
+                  <span class="intent-badge" id="intent-badge-name">ASCEND</span>
+                </div>
+                <div class="confidence-box">
+                  <span class="lbl">CONFIDENCE:</span>
+                  <span class="confidence-val" id="confidence-score-val">98.4%</span>
+                </div>
+                <div class="lang-tag-box">
+                  <span class="lbl">LANG:</span>
+                  <span class="lang-badge" id="lang-badge-val">ENGLISH</span>
+                </div>
+              </div>
+
+              <!-- AI Voice Synthesis Response Box -->
+              <div class="ai-response-box">
+                <span class="box-lbl">CAELIS AI RESPONSE:</span>
+                <p id="ai-response-text" class="ai-speech-content">"Adjusting anti-gravity flux density. Elevating altitude to 50 meters."</p>
+              </div>
+
+            </div>
+
+            <!-- Preset Voice Command Quick Buttons (English & Thanglish) -->
+            <div class="voice-presets-label">QUICK VOICE COMMAND SIMULATOR (TAP TO TEST):</div>
+            <div class="voice-presets-grid">
+              <button class="preset-btn" data-cmd="CAELIS elevate to 50 meters">"CAELIS elevate to 50 meters"</button>
+              <button class="preset-btn" data-cmd="CAELIS field power increase pannu">"CAELIS field power increase pannu"</button>
+              <button class="preset-btn" data-cmd="CAELIS field stability continuous ah check pannu">"CAELIS field stability check"</button>
+              <button class="preset-btn" data-cmd="CAELIS meleh po">"CAELIS meleh po"</button>
+              <button class="preset-btn" data-cmd="CAELIS keelay vaa">"CAELIS keelay vaa"</button>
+              <button class="preset-btn" data-cmd="CAELIS auto hover mode set pannu">"CAELIS auto hover set pannu"</button>
+              <button class="preset-btn" data-cmd="CAELIS emergency stop bro">"CAELIS emergency stop bro"</button>
+              <button class="preset-btn" data-cmd="CAELIS system status sollu">"CAELIS system status sollu"</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PANEL 5: ENERGY MONITORING & POWER ALLOCATION -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h2><span class="hdr-icon">🔋</span> ENERGY & POWER VECTORING</h2>
+            <span class="card-tag">POWER-GRID</span>
+          </div>
+          <div class="card-body">
+            
+            <!-- Battery Level Indicator -->
+            <div class="battery-metric">
+              <div class="battery-hdr">
+                <span>QUANTUM BATTERY CELL</span>
+                <span id="val-battery-pct" class="green-text">92%</span>
+              </div>
+              <div class="battery-bar">
+                <div class="battery-fill" id="battery-fill-bar" style="width: 92%;"></div>
+              </div>
+              <span class="sub-readout">Discharge Rate: <span id="num-discharge-rate">0.4% / min</span></span>
+            </div>
+
+            <!-- Power Allocation Sliders -->
+            <div class="allocation-rows">
+              <div class="alloc-item">
+                <label>ANTI-GRAV CORE (60%)</label>
+                <div class="alloc-bar"><div class="alloc-fill cyan-fill" style="width: 60%;"></div></div>
+              </div>
+              <div class="alloc-item">
+                <label>THRUST VECTORING (25%)</label>
+                <div class="alloc-bar"><div class="alloc-fill amber-fill" style="width: 25%;"></div></div>
+              </div>
+              <div class="alloc-item">
+                <label>DEFLECTOR SHIELD (15%)</label>
+                <div class="alloc-bar"><div class="alloc-fill green-fill" style="width: 15%;"></div></div>
+              </div>
+            </div>
+
+            <!-- Thrust Quadrant Balance Visualizer -->
+            <div class="quad-thrust-title">4-QUADRANT THRUST BALANCE</div>
+            <div class="quad-thrust-grid">
+              <div class="quad-node" id="quad-fl">FL: 100%</div>
+              <div class="quad-node" id="quad-fr">FR: 100%</div>
+              <div class="quad-node" id="quad-bl">BL: 100%</div>
+              <div class="quad-node" id="quad-br">BR: 100%</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PANEL 6: ENVIRONMENTAL SENSORS & RADAR -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h2><span class="hdr-icon">🛰️</span> ENVIRONMENT & RADAR SCOPE</h2>
+            <span class="card-tag">PROXIMITY-RADAR</span>
+          </div>
+          <div class="card-body env-radar-flex">
+            
+            <!-- Radar Scope Canvas -->
+            <div class="radar-scope-wrapper">
+              <canvas id="radar-canvas" width="140" height="140"></canvas>
+            </div>
+
+            <!-- Environmental Telemetry Readouts -->
+            <div class="env-data-grid">
+              <div class="env-item">
+                <span class="env-lbl">ATM PRESSURE</span>
+                <span class="env-val" id="val-pressure">1013.2 hPa</span>
+              </div>
+              <div class="env-item">
+                <span class="env-lbl">WIND VECTOR</span>
+                <span class="env-val" id="val-wind">14 kt @ 045°</span>
+              </div>
+              <div class="env-item">
+                <span class="env-lbl">AMBIENT TEMP</span>
+                <span class="env-val" id="val-temp">18.4 °C</span>
+              </div>
+              <div class="env-item">
+                <span class="env-lbl">COLLISION FAILSAFE</span>
+                <span class="env-val green-text" id="val-failsafe">ACTIVE (CLEAR)</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PANEL 7: SYSTEM TERMINAL LOGS & ALERTS -->
+        <div class="panel-card log-card">
+          <div class="card-header">
+            <h2><span class="hdr-icon">📜</span> SYSTEM COMMAND LOGS & ALERTS</h2>
+            <button class="hud-btn mini" id="btn-clear-logs">CLEAR LOGS</button>
+          </div>
+          <div class="card-body">
+            <div class="terminal-log-window" id="log-window">
+              <div class="log-line info">[18:50:00] CAELIS Engine Initialized... Quantum Flux Matrix online.</div>
+              <div class="log-line success">[18:50:01] 3D Anti-Gravity Field Visualizer loaded (Three.js WebGL).</div>
+              <div class="log-line info">[18:50:02] Voice AI Engine listening for wake word "CAELIS"...</div>
+              <div class="log-line warning">[18:50:05] Field intensity locked at 650% flux. Stability index 94.2%.</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- FOOTER SYSTEM BAR -->
+    <footer class="hud-footer">
+      <div class="footer-left">
+        <span>SECURITY: SAFE-ACTION-FIRST ENFORCED</span> | 
+        <span>LATENCY: 4ms</span> | 
+        <span>QUANTUM CORE: STABLE</span>
+      </div>
+      <div class="footer-right">
+        <span>C.A.E.L.I.S. INTELLIGENCE SYSTEM &copy; 2026</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT MODULES -->
+  <script src="js/audio_sfx.js"></script>
+  <script src="js/field3d.js"></script>
+  <script src="js/radar.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/voice_ai.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
